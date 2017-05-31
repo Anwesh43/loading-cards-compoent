@@ -14,9 +14,9 @@ class LoadingCard extends HTMLElement{
     }
     renderLoadingCard() {
         const canvas = document.createElement('canvas')
-        const w = window.innerWidth/3
+        const w = window.innerWidth/3,h = w
         canvas.width = w
-        canvas.height = canvas.width
+        canvas.height = w
         const context = canvas.getContext('2d')
         context.fillStyle = '#E0E0E0'
         context.fillRect(0,0,w,w)
@@ -40,16 +40,48 @@ class LoadingCard extends HTMLElement{
             this.state.x = 0
         }
     }
+    drawCard(title,subtitle) {
+        const canvas = document.createElement('canvas')
+        const w = window.innerWidth/3,h = w
+        const imgW = this.image.width,imgH = this.image.height
+        canvas.width = w
+        canvas.height = h
+        const context = canvas.getContext('2d')
+        context.fillStyle = '#E0E0E0'
+        context.fillRect(0,0,w,w)
+        context.save()
+        context.translate(w/10,w/10)
+        context.drawImage(this.image,0,h/20,2*w/3,(2*w/3)*imgH/imgW)
+        context.fillStyle = 'black'
+        context.font = context.font.replace(/\d{2}/,`${h/15}`)
+        context.fillText(title,0,h/2+h/20+h/30)
+        context.font = context.font.replace(/\d{2}/,`${h/20}`)
+        context.fillText(subtitle,0,2*h/3+h/40)
+        context.restore()
+        console.log(canvas)
+        this.img.src = canvas.toDataURL()
+
+    }
     connectedCallback() {
         fetch(this.resourceURL).then((res)=>{
             return res.json()
         }).then((data)=>{
+            console.log(data)
 
+            this.image = new Image()
+            this.image.src = data.img
+            this.image.onload = ()=>{
+                this.state.isLoading = false
+                setTimeout(()=>{
+                  this.drawCard(data.title,data.subtitle)
+                },100)
+            }
         }).catch((err)=>{
             console.log(err)
         })
         const interval = setInterval(()=>{
             if(this.state.isLoading == true) {
+
                 this.renderLoadingCard()
             }
             else {
